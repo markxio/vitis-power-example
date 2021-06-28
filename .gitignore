@@ -30,3 +30,16 @@
 *.exe
 *.out
 *.app
+bin/*
+
+reference_files*/*
+*.xo
+*.xclbin
+*.log
+profile_kernels.csv
+timeline_kernels.csv
+*.wcfg
+*.protoinst
+core
+eclipse/*
+*.json
