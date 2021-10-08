@@ -15,6 +15,7 @@ help:
 #######################################################################################
 TARGET := sw_emu
 PLATFORM := xilinx_u280_xdma_201920_3
+#PLATFORM := xilinx_u250_gen3x16_xdma_3_1_202020_1
 HOST_EXE := host
 XO := sum_kernel.$(TARGET).xo
 XCLBIN := sum_kernel.$(TARGET).xclbin
@@ -29,8 +30,8 @@ INCLUDES := $(wildcard $(DEVICE_SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(DEVICE_SRCDIR)/%.cpp=%.xo)
 
 # Host building global settings
-CXXFLAGS := -I$(XILINX_XRT)/include/ -I$(XILINX_VIVADO)/include/ -Wall -O3 -std=c++11 -L$(XILINX_XRT)/lib/ -lpthread -lrt -lstdc++
-CXXFLAGS2 := -lOpenCL
+CXXFLAGS := -I$(XILINX_XRT)/include/ -I$(XILINX_VIVADO)/include/ -Wall -O3 -std=c++11 -L$(XILINX_XRT)/lib/ -lhostsupport -lpthread -lrt -lstdc++
+CXXFLAGS2 := -lxilinxopencl
 
 # Kernel compiler & linker global settings
 KRNL_COMPILE_OPTS := -t $(TARGET) --config ../design.cfg --save-temps -O3
