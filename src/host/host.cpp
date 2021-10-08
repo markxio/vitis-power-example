@@ -1,4 +1,4 @@
-#include "host.hpp"
+#include <host_support.h>
 #include <stdio.h>
 #include <malloc.h>
 #include <sys/time.h>
@@ -34,6 +34,7 @@ int main(int argc, char * argv[]) {
 
   init_problem(data_size);
   init_device(argv[1], data_size);
+
   execute_on_device(copyOnEvent, kernelExecutionEvent, copyOffEvent);
   
   float kernelTime=getTimeOfComponent(kernelExecutionEvent);
@@ -93,26 +94,13 @@ static void execute_on_device(cl::Event & copyOnEvent, cl::Event & kernelExecuti
 static void init_device(char * binary_filename, int data_size) {
   cl_int err;
 
-  // Identify the device and create the appropriate context
-  std::vector<cl::Device> devices = get_devices("Xilinx");
-  devices.resize(1);
-  cl::Device device = devices[0];
-  OCL_CHECK(err, context=new cl::Context(device, NULL, NULL, NULL, &err));
+  std::vector<cl::Device> devices;
+  std::tie(program, context, devices)=initialiseDevice("Xilinx", "u280", binary_filename);
 
   // Create the command queue (and enable profiling so we can get performance data back)
-  OCL_CHECK(err, command_queue=new cl::CommandQueue(*context, device, CL_QUEUE_PROFILING_ENABLE, &err));
-
-  // Read the binary file
-  unsigned fileBufSize;
-  char* fileBuf = read_binary_file(binary_filename, fileBufSize);  
-  cl::Program::Binaries bins{{fileBuf, fileBufSize}};
-
-  // Create the program object from the binary and program the FPGA device with it
-  OCL_CHECK(err, program=new cl::Program(*context, devices, bins, NULL, &err));
-
+  OCL_CHECK(err, command_queue=new cl::CommandQueue(*context, devices[0], CL_QUEUE_PROFILING_ENABLE, &err));
   // Create a handle to the sum kernel
   OCL_CHECK(err, sum_kernel=new cl::Kernel(*program, "sum_kernel", &err));
-
   // Allocate global memory OpenCL buffers that will be copied on and off
   OCL_CHECK(err, buffer_input=new cl::Buffer(*context, CL_MEM_USE_HOST_PTR  | CL_MEM_READ_ONLY, data_size * sizeof(DATA_TYPE), input_data, &err));
   OCL_CHECK(err, buffer_result=new cl::Buffer(*context, CL_MEM_USE_HOST_PTR  | CL_MEM_WRITE_ONLY, data_size * sizeof(DATA_TYPE), result_data, &err));
