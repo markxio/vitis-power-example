@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <CL/cl2.hpp>
 #include <CL/cl_ext_xilinx.h>
+#include "../../vitis-power/vitis-power/vitis-power.hpp"
 
 // Datatype to use, must match the kernel datatype
 #define DATA_TYPE double
@@ -25,6 +26,7 @@ cl::Buffer *buffer_input, *buffer_result; // Buffers to transfer to and from the
 
 int main(int argc, char * argv[]) {    
   cl::Event copyOnEvent, kernelExecutionEvent, copyOffEvent;
+  double cardPowerAvgInWatt;
 
   if (argc != 3) {
     printf("You must supply two command line arguments, the bitstream file and number of data elements\n");
@@ -35,13 +37,24 @@ int main(int argc, char * argv[]) {
   init_problem(data_size);
   init_device(argv[1], data_size);
 
-  execute_on_device(copyOnEvent, kernelExecutionEvent, copyOffEvent);
+
+  bool stop_measurement = false;
+  #pragma omp parallel shared(stop_measurement, cardPowerAvgInWatt, copyOnEvent, kernelExecutionEvent, copyOffEvent) num_threads(2)
+  {
+      int tid = omp_get_thread_num();
+      if(tid == 0) {
+        execute_on_device(copyOnEvent, kernelExecutionEvent, copyOffEvent);
+      } else {
+          cardPowerAvgInWatt = vitis_power::measureFpgaPower(stop_measurement);
+      }
+      stop_measurement = true;
+  }
   
   float kernelTime=getTimeOfComponent(kernelExecutionEvent);
   float copyOnTime=getTimeOfComponent(copyOnEvent);
   float copyOffTime=getTimeOfComponent(copyOffEvent);
   
-  printf("Total runtime : %f ms, (%f ms xfer on, %f ms execute, %f ms xfer off) for %d elements\n", copyOnTime+kernelTime+copyOffTime, copyOnTime, kernelTime, copyOffTime, data_size);    
+  printf("Total runtime: %f ms, (%f ms xfer on, %f ms execute, %f ms xfer off) for %d elements; Avg card power: %f W; kernelTimeEnergy: %f J\n", copyOnTime+kernelTime+copyOffTime, copyOnTime, kernelTime, copyOffTime, data_size, cardPowerAvgInWatt, cardPowerAvgInWatt*(kernelTime/1000));    
  
   delete buffer_input;
   delete buffer_result;

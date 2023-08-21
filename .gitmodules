@@ -1,0 +1,3 @@
+[submodule "vitis-power"]
+	path = vitis-power
+	url = git@github.com:markxio/vitis-power.git

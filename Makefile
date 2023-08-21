@@ -30,7 +30,7 @@ INCLUDES := $(wildcard $(DEVICE_SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(DEVICE_SRCDIR)/%.cpp=%.xo)
 
 # Host building global settings
-CXXFLAGS := -I$(XILINX_XRT)/include/ -I$(XILINX_VIVADO)/include/ -Wall -O3 -std=c++11 -L$(XILINX_XRT)/lib/ -lhostsupport -lpthread -lrt -lstdc++
+CXXFLAGS := -I$(XILINX_XRT)/include/ -I$(XILINX_VIVADO)/include/ -Wall -O3 -std=c++11 -L$(XILINX_XRT)/lib/ -lhostsupport -lpthread -lrt -lstdc++ -fopenmp
 CXXFLAGS2 := -lxilinxopencl
 
 # Kernel compiler & linker global settings
