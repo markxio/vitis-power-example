@@ -45,7 +45,8 @@ int main(int argc, char * argv[]) {
       if(tid == 0) {
         execute_on_device(copyOnEvent, kernelExecutionEvent, copyOffEvent);
       } else {
-          cardPowerAvgInWatt = vitis_power::measureFpgaPower(stop_measurement);
+          bool profile_power=true;
+          cardPowerAvgInWatt = vitis_power::U280::measureFpgaPower(stop_measurement, profile_power);
       }
       stop_measurement = true;
   }
